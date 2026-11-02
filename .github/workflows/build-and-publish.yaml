@@ -19,6 +19,6 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v7
       with:
-        tags: ghcr.io/${{ github.repository }}:latest
+        tags: ghcr.io/sambobbarnes/protohackers-api:latest
         context: .
         push: true
