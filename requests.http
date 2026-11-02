@@ -5,3 +5,14 @@ Content-Type: application/json
   "title": "JetBrains HTTP Client",
   "body": "Testing APIs inside the IDE"
 }
+
+###
+
+POST http://216.51.254.136:56323/
+Content-Type: application/json
+
+{
+  "title": "JetBrains HTTP Client",
+  "body": "Testing APIs inside the IDE"
+}
+
