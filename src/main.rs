@@ -33,11 +33,12 @@ async fn handle_client(mut stream: TcpStream)-> io::Result<()>  {
     let mut n = stream.read(&mut buffer).await? ;
     bytes_read += n;
     while n == 1024{
-        print!("{}",buffer.iter().take(n).map(|&b| b as char).collect::<String>());
+        print!("{}",String::from_utf8(buffer.to_vec()).unwrap());
         stream.write_all(&buffer[..n]).await?;
         n = stream.read(&mut buffer[..]).await?;
         bytes_read += n;
     }
+    print!("{}",String::from_utf8(buffer.to_vec()).unwrap());
     stream.write_all(&buffer[..n]).await?;
     println!("{} bytes read and returned to client from {}", bytes_read,stream.peer_addr()?);
 
