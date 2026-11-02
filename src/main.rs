@@ -43,6 +43,7 @@ async fn handle_client(mut stream: TcpStream)-> io::Result<()>  {
     stream.write_all(&buffer[..n]).await?;
     println!("\n{} bytes read and returned to client from {}", bytes_read,stream.peer_addr()?);
 
+    stream.shutdown().await?;
     Ok(())
 }
 
