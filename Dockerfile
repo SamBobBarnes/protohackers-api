@@ -1,5 +1,5 @@
 # Use an official Rust runtime as a parent image
-FROM rust:1.69
+FROM rust:alpine3.24
 
 # Set the current working directory inside the container
 WORKDIR /usr/src/myapp
