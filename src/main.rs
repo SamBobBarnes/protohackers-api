@@ -1,10 +1,14 @@
-use axum::{Json, Router, response::IntoResponse, routing::get};
-use serde_json::json;
+use std::collections::HashMap;
+use axum::{Json, Router, response::IntoResponse, routing::post};
+use axum::body::{Bytes, HttpBody};
+use axum::extract::{Path, Query};
+use axum::http::HeaderMap;
+use uuid::Uuid;
 
 #[tokio::main]
 async fn main() {
     // build our application with a single route
-    let app = Router::new().route("/api", get(hello_world));
+    let app = Router::new().route("/", post(echo));
 
     // listen globally on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
@@ -12,10 +16,8 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn hello_world() -> impl IntoResponse {
-    let json_response = json!({
-        "status": "ok",
-        "message": "Hello, World!"
-    });
-    Json(json_response)
+async fn echo(
+    body: Bytes
+) -> impl IntoResponse {
+    body.into_response()
 }
