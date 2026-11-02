@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::time::SystemTime;
 use axum::{Json, Router, response::IntoResponse, routing::post};
 use axum::body::{Bytes, HttpBody};
 use axum::extract::{Path, Query};
@@ -33,14 +34,23 @@ async fn handle_client(mut stream: TcpStream)-> io::Result<()>  {
     let mut n = stream.read(&mut buffer).await? ;
     bytes_read += n;
     while n == 1024{
-        print!("{}",String::from_utf8(buffer.to_vec()).unwrap());
+        print_bytes(buffer[0..bytes_read].to_vec());
         stream.write_all(&buffer[..n]).await?;
         n = stream.read(&mut buffer[..]).await?;
         bytes_read += n;
     }
-    print!("{}",String::from_utf8(buffer.to_vec()).unwrap());
+    print_bytes(buffer[0..bytes_read].to_vec());
     stream.write_all(&buffer[..n]).await?;
-    println!("{} bytes read and returned to client from {}", bytes_read,stream.peer_addr()?);
+    println!("\n{} bytes read and returned to client from {}", bytes_read,stream.peer_addr()?);
 
     Ok(())
+}
+
+fn print_bytes(buffer: Vec<u8>) {
+    let string_result = String::from_utf8(buffer.to_vec());
+    if string_result.is_ok() {
+        print!("{}", string_result.unwrap());
+    } else {
+        println!("Invalid UTF-8 data");
+    }
 }
