@@ -45,7 +45,6 @@ pub async fn json_req_handler(mut stream: TcpStream) -> io::Result<()> {
         }
     }
 
-    stream.shutdown().await?;
     Ok(())
 }
 
@@ -71,5 +70,7 @@ async fn return_prime_response(stream: &mut TcpStream,is_prime: bool) -> io::Res
 async fn return_malformed_response(stream: &mut TcpStream) -> io::Result<()> {
     println!("returning malformed response");
     stream.write_all("malformed\n".as_bytes()).await?;
+
+    stream.shutdown().await?;
     Ok(())
 }
