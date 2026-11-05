@@ -137,6 +137,7 @@ pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()> 
         }
     }
 
+    print!("{} Closing connection", id);
     stream.shutdown().await?;
     Ok(())
 }
