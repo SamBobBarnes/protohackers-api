@@ -12,16 +12,20 @@ pub fn print_bytes(buffer: Vec<u8>) {
 }
 
 pub async fn read_dynamic_message(stream: &mut TcpStream) -> io::Result<Vec<u8>> {
-    // Step 1: Read the exact size prefix (e.g., a 4-byte u32 integer)
-    let mut size_buffer = [0u8; 4];
-    stream.read_exact(&mut size_buffer).await?;
-
-    // Convert bytes to integer (assuming network/big-endian byte order)
-    let message_len = u32::from_be_bytes(size_buffer) as usize;
-
-    // Step 2: Initialize a vector to the exact size and fill it
-    let mut payload_buffer = vec![0u8; message_len];
-    stream.read_exact(&mut payload_buffer).await?;
-
-    Ok(payload_buffer)
+    let mut buf = [0u8; 1024];
+    let mut buf_n = 0;
+    loop {
+        match stream.read(&mut buf).await {
+            Ok(0) => break, // Connection closed
+            Ok(n) => {
+                println!("Read {} bytes from stream", n);
+                buf_n = n;
+            }
+            Err(e) => {
+                eprintln!("Failed to read from socket: {}", e);
+                break;
+            }
+        }
+    }
+    Ok(buf[..buf_n].to_vec())
 }

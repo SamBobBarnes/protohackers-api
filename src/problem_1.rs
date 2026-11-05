@@ -1,8 +1,12 @@
+use std::ops::Add;
+use std::time::Duration;
 use axum::Json;
+use chrono::Local;
 use serde::Deserialize;
 use tokio::io;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
+use uuid::Timestamp;
 use crate::helpers::{print_bytes, read_dynamic_message};
 
 #[derive(Deserialize)]
@@ -13,10 +17,19 @@ struct IsPrime {
 
 pub async fn json_req_handler(mut stream: TcpStream) -> io::Result<()> {
     let mut close = false;
+    let timeout = Duration::from_secs(10);
+    let now = Local::now();
+    let time_to_close = now.add(timeout);
     while !close {
-        println!("------------------");
         let message = read_dynamic_message(&mut stream).await?;
-        println!("\n ------ \n{} bytes read and returned to client from {}\n---------\n{}\n---------", message.len(), stream.peer_addr()?, String::from_utf8_lossy(&message));
+        if message.len() == 0 {
+            if Local::now() >= time_to_close {
+                println!("Time to close");
+                close = true;
+            }
+            continue;
+        }
+        println!("------------------\n{}",String::from_utf8(message.clone()).unwrap());
         let json_result = Json::<IsPrime>::from_bytes(&message);
         if !String::from_utf8_lossy(&message).ends_with("\n") {
             return_malformed_response(&mut stream).await?;
