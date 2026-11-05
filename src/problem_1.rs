@@ -6,8 +6,8 @@ use serde::Deserialize;
 use tokio::io;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
-use uuid::Timestamp;
-use crate::helpers::{print_bytes, read_dynamic_message};
+use uuid::{Timestamp, Uuid};
+use crate::helpers::{print_bytes, read_to_line_feed};
 
 #[derive(Deserialize)]
 struct IsPrime {
@@ -20,18 +20,20 @@ pub async fn json_req_handler(mut stream: TcpStream) -> io::Result<()> {
     let timeout = Duration::from_secs(10);
     let now = Local::now();
     let time_to_close = now.add(timeout);
+    let id = Uuid::new_v4();
+    println!("ip: {}; id: {}",stream.peer_addr()?, id);
     while !close {
-        let message = read_dynamic_message(&mut stream).await?;
+        let message = read_to_line_feed(&mut stream).await?;
         if message.len() == 0 {
             if Local::now() >= time_to_close {
-                println!("Time to close");
+                println!("Time to close {}", id);
                 close = true;
             }
             continue;
         }
-        println!("------------------\n{}",String::from_utf8(message.clone()).unwrap());
-        let json_result = Json::<IsPrime>::from_bytes(&message);
-        if !String::from_utf8_lossy(&message).ends_with("\n") {
+        println!("------------------\n{}",message.clone());
+        let json_result = Json::<IsPrime>::from_bytes(&message.as_bytes());
+        if !message.ends_with("\n") {
             return_malformed_response(&mut stream).await?;
             close = true;
         } else if json_result.is_err() {
@@ -54,6 +56,8 @@ pub async fn json_req_handler(mut stream: TcpStream) -> io::Result<()> {
             }
         }
     }
+    println!("Closing {}", id);
+    stream.shutdown().await?;
     Ok(())
 }
 
@@ -69,6 +73,5 @@ async fn return_malformed_response(stream: &mut TcpStream) -> io::Result<()> {
     println!("returning malformed response");
     stream.write_all("malformed\n".as_bytes()).await?;
 
-    stream.shutdown().await?;
     Ok(())
 }

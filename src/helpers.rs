@@ -11,15 +11,18 @@ pub fn print_bytes(buffer: Vec<u8>) {
     }
 }
 
-pub async fn read_dynamic_message(stream: &mut TcpStream) -> io::Result<Vec<u8>> {
+pub async fn read_to_line_feed(stream: &mut TcpStream) -> io::Result<String> {
+    let mut message = String::new();
     let mut buf = [0u8; 1024];
-    let mut buf_n = 0;
     loop {
         match stream.read(&mut buf).await {
             Ok(0) => break, // Connection closed
             Ok(n) => {
                 println!("Read {} bytes from stream", n);
-                buf_n = n;
+                message.push_str(&String::from_utf8_lossy(&buf[..n]));
+                if message.ends_with("\n") {
+                    break;
+                }
             }
             Err(e) => {
                 eprintln!("Failed to read from socket: {}", e);
@@ -27,5 +30,5 @@ pub async fn read_dynamic_message(stream: &mut TcpStream) -> io::Result<Vec<u8>>
             }
         }
     }
-    Ok(buf[..buf_n].to_vec())
+    Ok(message)
 }
