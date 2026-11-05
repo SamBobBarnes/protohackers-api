@@ -19,7 +19,7 @@ pub async fn json_req_handler(mut stream: TcpStream) -> io::Result<()> {
     let mut close = false;
     let timeout = Duration::from_secs(10);
     let now = Local::now();
-    let time_to_close = now.add(timeout);
+    let mut time_to_close = now.add(timeout);
     let id = Uuid::new_v4();
     println!("ip: {}; id: {}",stream.peer_addr()?, id);
     while !close {
@@ -31,6 +31,7 @@ pub async fn json_req_handler(mut stream: TcpStream) -> io::Result<()> {
             }
             continue;
         }
+        time_to_close = now.add(timeout);
         println!("------------------\n{}",message.clone());
         let json_result = Json::<IsPrime>::from_bytes(&message.as_bytes());
         if !message.ends_with("\n") {
