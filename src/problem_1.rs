@@ -18,7 +18,7 @@ pub async fn json_req_handler(mut stream: TcpStream) -> io::Result<()> {
     let mut bytes_read = 0;
     println!("------------------");
     loop{
-        println!("loop...");
+        print!("loop...:");
         let n = stream.read(&mut buffer[..]).await?;
         print_bytes(buffer.to_vec());
         string_result.push_str(&String::from_utf8_lossy(&buffer[..n]));
