@@ -32,7 +32,7 @@ pub async fn json_req_handler(mut stream: TcpStream) -> io::Result<()> {
             continue;
         }
         time_to_close = now.add(timeout);
-        println!("------------------");
+        println!("------------------ {}",id);
         println!("raw message debug: {:?}", message.clone());
         println!("raw bytes: {:02x?}", message.as_bytes());
         let json_result = Json::<IsPrime>::from_bytes(&message.as_bytes());

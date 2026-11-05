@@ -18,7 +18,7 @@ pub async fn read_to_line_feed(stream: &mut TcpStream) -> io::Result<String> {
         match stream.read(&mut buf).await {
             Ok(0) => break, // Connection closed
             Ok(n) => {
-                println!("Read {} bytes from stream", n);
+                // println!("Read {} bytes from stream", n);
                 message.push_str(&String::from_utf8_lossy(&buf[..n]));
                 if message.ends_with("\n") {
                     break;
