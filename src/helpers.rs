@@ -13,7 +13,7 @@ pub fn print_bytes(buffer: Vec<u8>) {
 
 pub async fn read_to_line_feed(stream: &mut TcpStream) -> io::Result<String> {
     let mut message = String::new();
-    let mut buf = [0u8; 1024];
+    let mut buf = [0u8; 1];
     loop {
         match stream.read(&mut buf).await {
             Ok(0) => break, // Connection closed
