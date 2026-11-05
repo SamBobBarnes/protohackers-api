@@ -1,6 +1,7 @@
 pub mod problem_0;
 pub mod problem_1;
 pub mod helpers;
+pub mod problem_2;
 
 use axum::{Json, Router, response::IntoResponse, routing::post};
 
