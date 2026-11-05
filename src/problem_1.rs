@@ -18,6 +18,7 @@ pub async fn json_req_handler(mut stream: TcpStream) -> io::Result<()> {
     let mut bytes_read = 0;
     println!("------------------");
     loop{
+        println!("loop...");
         let n = stream.read(&mut buffer[..]).await?;
         print_bytes(buffer.to_vec());
         string_result.push_str(&String::from_utf8_lossy(&buffer[..n]));
@@ -55,6 +56,8 @@ async fn return_prime_response(stream: &mut TcpStream,is_prime: bool) -> io::Res
     let response = format!("{{\"method\":\"isPrime\",\"prime\":{is_prime_str}}}\n");
     println!("returning: {}", response);
     stream.write_all(response.as_bytes()).await?;
+
+    stream.shutdown().await?;
     Ok(())
 }
 async fn return_malformed_response(stream: &mut TcpStream) -> io::Result<()> {
