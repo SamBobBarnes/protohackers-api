@@ -41,25 +41,13 @@ pub async fn json_req_handler(mut stream: TcpStream) -> io::Result<()> {
                 return_prime_response(&mut stream, false).await?;
             } else {
             let number = json.number as u64;
-                let is_prime = is_prime(number);
+                let is_prime = primes::is_prime(number);
                 return_prime_response(&mut stream,is_prime).await?;
             }
         }
     }
 
     Ok(())
-}
-
-fn is_prime(number: u64) -> bool {
-    if number <= 1 {
-        return false;
-    }
-    for i in 2..=((number as f64).sqrt() as u64) {
-        if number % i == 0 {
-            return false;
-        }
-    }
-    true
 }
 
 async fn return_prime_response(stream: &mut TcpStream,is_prime: bool) -> io::Result<()> {
