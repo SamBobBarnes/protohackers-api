@@ -1,9 +1,9 @@
 use axum::Json;
 use serde::Deserialize;
 use tokio::io;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
-use crate::helpers::print_bytes;
+use crate::helpers::{print_bytes, read_dynamic_message};
 
 #[derive(Deserialize)]
 struct IsPrime {
@@ -14,22 +14,11 @@ struct IsPrime {
 pub async fn json_req_handler(mut stream: TcpStream) -> io::Result<()> {
     let mut close = false;
     while !close {
-        let mut buffer = [0; 1024];
-        let mut string_result = String::new();
-        let mut bytes_read = 0;
         println!("------------------");
-        loop {
-            print!("loop...:");
-            let n = stream.read(&mut buffer[..]).await?;
-            print_bytes(buffer.to_vec());
-            string_result.push_str(&String::from_utf8_lossy(&buffer[..n]));
-            if n == 0 { break; }
-            bytes_read += n;
-        }
-        println!("\n ------ \n{} bytes read and returned to client from {}\n---------\n{}\n---------", bytes_read, stream.peer_addr()?, string_result);
-        if bytes_read == 0 { continue }
-        let json_result = Json::<IsPrime>::from_bytes(string_result.as_bytes());
-        if !string_result.ends_with("\n") {
+        let message = read_dynamic_message(&mut stream).await?;
+        println!("\n ------ \n{} bytes read and returned to client from {}\n---------\n{}\n---------", message.len(), stream.peer_addr()?, String::from_utf8_lossy(&message));
+        let json_result = Json::<IsPrime>::from_bytes(&message);
+        if !String::from_utf8_lossy(&message).ends_with("\n") {
             return_malformed_response(&mut stream).await?;
             close = true;
         } else if json_result.is_err() {
