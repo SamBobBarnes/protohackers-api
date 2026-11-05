@@ -4,6 +4,7 @@ use tokio::io;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use downcast_rs::{impl_downcast, Downcast};
+use uuid::Uuid;
 
 enum FinancialRequestType {
     Query,
@@ -116,7 +117,8 @@ fn get_mean_of_data(data:&Vec<(i32,i32)>, min_time:i32, max_time:i32) -> i32 {
 pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()>  {
     let mut data: Vec<(i32,i32)> = Vec::new();
     let mut buffer = [0; 9];
-    println!("------------------");
+    let id = Uuid::new_v4();
+    println!("------------------ {}",id);
     loop{
         let n = stream.read(&mut buffer[..]).await?;
         if n == 0 { break; }
@@ -125,9 +127,11 @@ pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()> 
         if request.get_financial_request_type() == FinancialRequestType::Query {
             let query = request.downcast::<FinancialQuery>().unwrap();
             let mean = get_mean_of_data(&data, query.min_time(), query.max_time());
+            println!("{} Query: {:?}; mean: {}",id,query, mean);
             stream.write_all(&mean.to_be_bytes()).await?;
         } else {
             let insertion = request.downcast::<FinancialInsertion>().unwrap();
+            println!("{} Insert: {:?}", id, insertion);
             data.push((insertion.timestamp(), insertion.price()));
             data.sort_by(|a, b| b.0.cmp(&a.0));
         }
