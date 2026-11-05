@@ -16,7 +16,7 @@ async fn main() -> io::Result<()>  {
     loop {
         // Accept a new connection
         let (stream, _addr) = listener.accept().await?;
-        
+
         // Spawn a new task to handle the connection concurrently
         tokio::spawn(async move {
             if let Err(e) = handle_client(stream).await {
@@ -29,7 +29,8 @@ async fn main() -> io::Result<()>  {
 async fn handle_client(stream: TcpStream)-> io::Result<()>  {
 
     // problem_0::echo(stream).await?;
-    problem_1::json_req_handler(stream).await?;
+    // problem_1::json_req_handler(stream).await?;
+    problem_2::handle_financial_requests(stream).await?;
     Ok(())
 
 }

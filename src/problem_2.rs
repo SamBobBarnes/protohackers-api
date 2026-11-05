@@ -77,9 +77,12 @@ impl FinancialRequestBase {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid byte length"));
         }
 
+        let a_bytes =bytes[1..5].to_vec();
+        let b_bytes =bytes[5..9].to_vec();
+
         let request = FinancialRequestBase {
-            a: bytes[1..4].iter().fold(0, |acc, &b| (acc << 8) | b as i32),
-            b: bytes[4..8].iter().fold(0, |acc, &b| (acc << 8) | b as i32),
+            a: a_bytes.iter().fold(0, |acc, &b| (acc << 8) | b as i32),
+            b: b_bytes.iter().fold(0, |acc, &b| (acc << 8) | b as i32),
         };
 
         match bytes[0] {
@@ -110,12 +113,12 @@ fn get_mean_of_data(data:&Vec<(i32,i32)>, min_time:i32, max_time:i32) -> i32 {
     mean as i32
 }
 
-pub async fn handle_financial_query(mut stream: TcpStream) -> io::Result<()>  {
+pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()>  {
     let mut data: Vec<(i32,i32)> = Vec::new();
     let mut buffer = [0; 9];
     println!("------------------");
     loop{
-        let n = stream.read_exact(&mut buffer[..]).await?;
+        let n = stream.read(&mut buffer[..]).await?;
         if n == 0 { break; }
         let request = FinancialRequestBase::from_bytes(buffer.as_ref())?;
 
