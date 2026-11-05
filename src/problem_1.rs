@@ -27,7 +27,7 @@ pub async fn json_req_handler(mut stream: TcpStream) -> io::Result<()> {
             bytes_read += n;
         }
         println!("\n ------ \n{} bytes read and returned to client from {}\n---------\n{}\n---------", bytes_read, stream.peer_addr()?, string_result);
-
+        if bytes_read == 0 { continue }
         let json_result = Json::<IsPrime>::from_bytes(string_result.as_bytes());
         if !string_result.ends_with("\n") {
             return_malformed_response(&mut stream).await?;
