@@ -74,12 +74,12 @@ impl FinancialRequest for FinancialInsertion {
 
 impl FinancialRequestBase {
     fn from_bytes(bytes: &[u8]) -> io::Result<Box<dyn FinancialRequest>> {
-        if bytes.len() != 9 {
+        if bytes.len() != 11 {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid byte length"));
         }
 
         let a_bytes =bytes[1..5].to_vec();
-        let b_bytes =bytes[5..9].to_vec();
+        let b_bytes =bytes[6..10].to_vec();
 
         let request = FinancialRequestBase {
             a: a_bytes.iter().fold(0, |acc, &b| (acc << 8) | b as i32),
@@ -116,7 +116,7 @@ fn get_mean_of_data(data:&Vec<(i32,i32)>, min_time:i32, max_time:i32) -> i32 {
 
 pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()>  {
     let mut data: Vec<(i32,i32)> = Vec::new();
-    let mut buffer = [0; 9];
+    let mut buffer = [0; 11];
     let id = Uuid::new_v4();
     println!("------------------ {}",id);
     loop{
