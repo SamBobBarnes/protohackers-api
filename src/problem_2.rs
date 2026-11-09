@@ -123,6 +123,7 @@ pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()> 
     loop{
         let n = stream.read(&mut buffer[..]).await?;
         if n == 0 { break; }
+        println!("read {} bytes", n);
         print_raw_bytes(buffer.to_vec());
         let request = FinancialRequestBase::from_bytes(buffer.as_ref())?;
 
