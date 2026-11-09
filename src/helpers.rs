@@ -11,6 +11,10 @@ pub fn print_bytes(buffer: Vec<u8>) {
     }
 }
 
+pub fn print_raw_bytes(buffer: Vec<u8>) {
+    println!("raw bytes: {:02x?}", buffer);
+}
+
 pub async fn read_to_line_feed(stream: &mut TcpStream) -> io::Result<String> {
     let mut message = String::new();
     let mut buf = [0u8; 1];

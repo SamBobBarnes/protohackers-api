@@ -5,6 +5,7 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use downcast_rs::{impl_downcast, Downcast};
 use uuid::Uuid;
+use crate::helpers::print_raw_bytes;
 
 enum FinancialRequestType {
     Query,
@@ -122,6 +123,7 @@ pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()> 
     loop{
         let n = stream.read(&mut buffer[..]).await?;
         if n == 0 { break; }
+        print_raw_bytes(buffer.to_vec());
         let request = FinancialRequestBase::from_bytes(buffer.as_ref())?;
 
         if request.get_financial_request_type() == FinancialRequestType::Query {
