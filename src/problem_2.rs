@@ -75,12 +75,12 @@ impl FinancialRequest for FinancialInsertion {
 
 impl FinancialRequestBase {
     fn from_bytes(bytes: &[u8]) -> io::Result<Box<dyn FinancialRequest>> {
-        if bytes.len() != 11 {
+        if bytes.len() != 9 {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid byte length"));
         }
 
         let a_bytes =bytes[1..5].to_vec();
-        let b_bytes =bytes[6..10].to_vec();
+        let b_bytes =bytes[5..9].to_vec();
 
         let request = FinancialRequestBase {
             a: a_bytes.iter().fold(0, |acc, &b| (acc << 8) | b as i32),
@@ -136,7 +136,7 @@ pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()> 
         buffer[1..5].copy_from_slice(&buff2);
         buffer[5..9].copy_from_slice(&buff3);
         print_raw_bytes(buffer.to_vec());
-        let request = FinancialRequestBase::from_bytes(buffer[..n].as_ref())?;
+        let request = FinancialRequestBase::from_bytes(buffer.as_ref())?;
 
         if request.get_financial_request_type() == FinancialRequestType::Query {
             let query = request.downcast::<FinancialQuery>().unwrap();
