@@ -124,7 +124,6 @@ pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()> 
         let n = stream.read(&mut buff1[..]).await?;
         if n == 0 { break; }
         print_raw_bytes(buff1[..n].to_vec());
-
         let mut buff2 = [0;4];
         stream.read(&mut buff2[..]).await?;
         print_raw_bytes(buff2.to_vec());
