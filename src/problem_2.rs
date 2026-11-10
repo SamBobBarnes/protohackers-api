@@ -117,15 +117,26 @@ fn get_mean_of_data(data:&Vec<(i32,i32)>, min_time:i32, max_time:i32) -> i32 {
 
 pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()>  {
     let mut data: Vec<(i32,i32)> = Vec::new();
-    let mut buffer = [0; 11];
+    let mut buffer = [0; 9];
     let id = Uuid::new_v4();
     println!("------------------ {}",id);
     loop{
         let n = stream.read(&mut buffer[..]).await?;
         if n == 0 { break; }
         println!("read {} bytes", n);
+        print_raw_bytes(buffer[..n].to_vec());
+        if n != 1 { break;}
+
+        let mut buff2 = [0;4];
+        stream.read(&mut buff2[..]).await?;
+        print_raw_bytes(buff2.to_vec());
+        let mut buff3 = [0;4];
+        stream.read(&mut buff3[..]).await?;
+        print_raw_bytes(buff3.to_vec());
+        buffer[1..4].copy_from_slice(&buff2);
+        buffer[5..4].copy_from_slice(&buff3);
         print_raw_bytes(buffer.to_vec());
-        let request = FinancialRequestBase::from_bytes(buffer.as_ref())?;
+        let request = FinancialRequestBase::from_bytes(buffer[..n].as_ref())?;
 
         if request.get_financial_request_type() == FinancialRequestType::Query {
             let query = request.downcast::<FinancialQuery>().unwrap();
