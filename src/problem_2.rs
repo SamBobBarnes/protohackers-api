@@ -133,8 +133,8 @@ pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()> 
         let mut buff3 = [0;4];
         stream.read(&mut buff3[..]).await?;
         print_raw_bytes(buff3.to_vec());
-        buffer[1..4].copy_from_slice(&buff2);
-        buffer[5..4].copy_from_slice(&buff3);
+        buffer[1..5].copy_from_slice(&buff2);
+        buffer[5..9].copy_from_slice(&buff3);
         print_raw_bytes(buffer.to_vec());
         let request = FinancialRequestBase::from_bytes(buffer[..n].as_ref())?;
 
