@@ -1,5 +1,7 @@
 use std::cmp::PartialEq;
 use std::fmt::{Debug, Formatter};
+use std::thread::sleep;
+use std::time::Duration;
 use tokio::io;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
@@ -120,6 +122,13 @@ pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()> 
     let mut buff1 = [0; 1];
     let id = Uuid::new_v4();
     println!("------------------ {}",id);
+    for i in 0..100 {
+        let mut buff0 = [0;1024];
+        let n = stream.read(&mut buff0[..]).await?;
+        if n == 0 { break; }
+        print_raw_bytes(buff0[..n].to_vec());
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
     loop{
         let n = stream.read(&mut buff1[..]).await?;
         if n == 0 { break; }
