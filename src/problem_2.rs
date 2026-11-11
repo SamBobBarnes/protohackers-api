@@ -119,33 +119,22 @@ fn get_mean_of_data(data:&Vec<(i32,i32)>, min_time:i32, max_time:i32) -> i32 {
 
 pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()>  {
     let mut data: Vec<(i32,i32)> = Vec::new();
-    let mut buff1 = [0; 1];
+    let mut buffer:Vec<u8> = Vec::new();
     let id = Uuid::new_v4();
     println!("------------------ {}",id);
-    for i in 0..100 {
+    let mut n = 1;
+    while n != 0 {
         let mut buff0 = [0;1024];
         let n = stream.read(&mut buff0[..]).await?;
         if n == 0 { break; }
-        print_raw_bytes(buff0[..n].to_vec());
+        // print_raw_bytes(buff0[..n].to_vec());
+        buffer.extend(buff0[..n].iter());
         tokio::time::sleep(Duration::from_millis(100)).await;
     }
     loop{
-        let n = stream.read(&mut buff1[..]).await?;
-        if n == 0 { break; }
-        print_raw_bytes(buff1[..n].to_vec());
-        let mut buff2 = [0;4];
-        stream.read(&mut buff2[..]).await?;
-        print_raw_bytes(buff2.to_vec());
-        let mut buff3 = [0;4];
-        stream.read(&mut buff3[..]).await?;
-        print_raw_bytes(buff3.to_vec());
-        let mut buffer = [0;9];
-        buffer[0..1].copy_from_slice(&buff1);
-        buffer[1..5].copy_from_slice(&buff2);
-        buffer[5..9].copy_from_slice(&buff3);
-        print_raw_bytes(buffer.to_vec());
+        if buffer.len() < 9 { break;}
 
-        let request = FinancialRequestBase::from_bytes(buffer.as_ref())?;
+        let request = FinancialRequestBase::from_bytes(buffer.drain(0..9).as_ref())?;
 
         if request.get_financial_request_type() == FinancialRequestType::Query {
             let query = request.downcast::<FinancialQuery>().unwrap();
