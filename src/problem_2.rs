@@ -122,11 +122,11 @@ pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()> 
     let mut buffer:Vec<u8> = Vec::new();
     let id = Uuid::new_v4();
     // println!("------------------ {}",id);
-    let mut n = 1;
+    let mut insertion_count = 0;
     loop{
         if buffer.len() < 9 {
             let mut buff0 = [0; 1024];
-            n = stream.read(&mut buff0[..]).await?;
+            let n = stream.read(&mut buff0[..]).await?;
             // println!("Read {} bytes", n);
             if n == 0 { break; }
             // print_raw_bytes(buff0[..n].to_vec());
@@ -140,14 +140,18 @@ pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()> 
 
         if request.get_financial_request_type() == FinancialRequestType::Query {
             let query = request.downcast::<FinancialQuery>().unwrap();
+            data.sort_by(|a, b| b.0.cmp(&a.0));
             let mean = get_mean_of_data(&data, query.min_time(), query.max_time());
             // println!("{} Query: {:?}; mean: {}",id,query, mean);
             stream.write_all(&mean.to_be_bytes()).await?;
         } else {
             let insertion = request.downcast::<FinancialInsertion>().unwrap();
             // println!("{} Insert: {:?}", id, insertion);
+            insertion_count += 1;
+            if insertion_count % 1000 == 0 {
+                println!("{} Insertions: {}", id, insertion_count);
+            }
             data.push((insertion.timestamp(), insertion.price()));
-            data.sort_by(|a, b| b.0.cmp(&a.0));
         }
     }
 
