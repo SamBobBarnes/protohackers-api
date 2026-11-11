@@ -121,35 +121,37 @@ pub async fn handle_financial_requests(mut stream: TcpStream) -> io::Result<()> 
     let mut data: Vec<(i32,i32)> = Vec::new();
     let mut buffer:Vec<u8> = Vec::new();
     let id = Uuid::new_v4();
-    println!("------------------ {}",id);
+    // println!("------------------ {}",id);
     let mut n = 1;
-    while n != 0 {
-        let mut buff0 = [0;1024];
-        let n = stream.read(&mut buff0[..]).await?;
-        if n == 0 { break; }
-        // print_raw_bytes(buff0[..n].to_vec());
-        buffer.extend(buff0[..n].iter());
-        tokio::time::sleep(Duration::from_millis(100)).await;
-    }
     loop{
-        if buffer.len() < 9 { break;}
+        if buffer.len() < 9 {
+            let mut buff0 = [0; 1024];
+            n = stream.read(&mut buff0[..]).await?;
+            println!("Read {} bytes", n);
+            if n == 0 { break; }
+            // print_raw_bytes(buff0[..n].to_vec());
+            buffer.extend(buff0[..n].iter());
+        }
+
+        if buffer.len() < 9 { continue;}
+        // print_raw_bytes(buffer[0..9].to_vec());
 
         let request = FinancialRequestBase::from_bytes(buffer.drain(0..9).as_ref())?;
 
         if request.get_financial_request_type() == FinancialRequestType::Query {
             let query = request.downcast::<FinancialQuery>().unwrap();
             let mean = get_mean_of_data(&data, query.min_time(), query.max_time());
-            println!("{} Query: {:?}; mean: {}",id,query, mean);
+            // println!("{} Query: {:?}; mean: {}",id,query, mean);
             stream.write_all(&mean.to_be_bytes()).await?;
         } else {
             let insertion = request.downcast::<FinancialInsertion>().unwrap();
-            println!("{} Insert: {:?}", id, insertion);
+            // println!("{} Insert: {:?}", id, insertion);
             data.push((insertion.timestamp(), insertion.price()));
             data.sort_by(|a, b| b.0.cmp(&a.0));
         }
     }
 
-    print!("{} Closing connection", id);
+    // print!("{} Closing connection", id);
     stream.shutdown().await?;
     Ok(())
 }
